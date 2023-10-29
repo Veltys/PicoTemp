@@ -12,11 +12,15 @@ PicoTemp measures the temperature thanks to a DHT11 sensor and returns it in the
 
 ## Changelog
 ### To-do (*TODO*)
-- [ ] Create a to-do list
+- [ ] Asynchronous web server
+- [ ] Button support to switch off LEDs
+- [ ] Screen support... which reminds me...
+    - [ ] ... buy an screen, [like this one](https://amzn.eu/d/5Pab0Ox)
 
 ### [1.0.0] - 2023-10-29
 #### Added
 - Pre-existent work
+- To-do list
 
 ### [0.0.2] - 2023-10-29
 #### Added
