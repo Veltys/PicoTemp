@@ -14,6 +14,10 @@ PicoTemp measures the temperature thanks to a DHT11 sensor and returns it in the
 ### To-do (*TODO*)
 - [ ] Create a to-do list
 
+### [1.0.0] - 2023-10-29
+#### Added
+- Pre-existent work
+
 ### [0.0.2] - 2023-10-29
 #### Added
 - **.gitignore** file
