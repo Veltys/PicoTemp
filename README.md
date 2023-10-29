@@ -2,6 +2,7 @@
 [![GitHub commits](https://badgen.net/github/commits/Veltys/PicoTemp)](https://GitHub.com/Veltys/PicoTemp/commit/)
 [![GitHub latest commit](https://badgen.net/github/last-commit/Veltys/PicoTemp)](https://GitHub.com/Veltys/PicoTemp/commit/)
 [![GPLv3 license](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://github.com/Veltys/Ansible/blob/master/LICENSE.md)
+[![Codacy Badge](https://app.codacy.com/project/badge/Grade/29172a22cc744d2d8aaed3295e75d322)](https://app.codacy.com/gh/Veltys/PicoTemp/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade)
 
 PicoTemp software for Raspberry Pi Pico
 
@@ -18,6 +19,9 @@ PicoTemp measures the temperature thanks to a DHT11 sensor and returns it in the
     - [ ] ... buy an screen, [like this one](https://amzn.eu/d/5Pab0Ox)
 
 ### [1.0.2] - 2023-10-30
+#### Added
+- Codacy badge
+
 #### Fixed
 - Code quality
 
