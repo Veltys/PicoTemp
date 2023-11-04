@@ -9,8 +9,8 @@
     @brief		: Main module
 
     @author		: Veltys
-    @date		: 2023-10-30
-    @version	: 1.0.2
+    @date		: 2023-11-04
+    @version	: 1.0.3
     @usage		: python3 main.py | ./main.py
     @note		: ...
 '''
@@ -93,7 +93,7 @@ def main(argv = sys.argv[1:]):													# @UnusedVariable
     for i in range(3):
         lds.off(i)
 
-    sys.exit(ExitStatus.success)
+    sys.exit(0)
 
 
 if __name__ == "__main__":

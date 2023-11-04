@@ -18,6 +18,10 @@ PicoTemp measures the temperature thanks to a DHT11 sensor and returns it in the
 - [ ] Screen support... which reminds me...
     - [ ] ... buy an screen, [like this one](https://amzn.eu/d/5Pab0Ox)
 
+### [1.0.3] - 2023-11-04
+#### Fixed
+- Micropython does not have ExitStatus library
+
 ### [1.0.2] - 2023-10-30
 #### Added
 - Codacy badge
