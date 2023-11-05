@@ -13,14 +13,17 @@ PicoTemp measures the temperature thanks to a DHT11 sensor and returns it in the
 
 ## Changelog
 ### To-do (*TODO*)
-- [ ] Asynchronous web server
 - [ ] Button support to switch off LEDs
 - [ ] Screen support... which reminds me...
-    - [ ] ... buy an screen, [like this one](https://amzn.eu/d/5Pab0Ox)
+    - [x] ... buy an screen, [like this one](https://amzn.eu/d/5Pab0Ox)
+
+### Cancelled
+- [ ] ~~Asynchronous web server~~
 
 ### [1.0.3] - 2023-11-04
 #### Fixed
 - Micropython does not have ExitStatus library
+- Documentation
 
 ### [1.0.2] - 2023-10-30
 #### Added

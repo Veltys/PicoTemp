@@ -9,8 +9,8 @@
     @brief		: HTTP server module
 
     @author		: Veltys
-    @date		: 2023-10-30
-    @version	: 1.0.1
+    @date		: 2023-11-04
+    @version	: 1.0.2
     @usage		: (imported when needed)
     @note		: ...
 '''
@@ -36,6 +36,8 @@ class server:
     def accept(self, response):
         '''!
             Socket accepter
+            
+            @param response             : Plain text response
         '''
 
         if(self._bound):
