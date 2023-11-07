@@ -9,8 +9,8 @@
     @brief		: HTTP server module
 
     @author		: Veltys
-    @date		: 2023-10-29
-    @version	: 1.0.0
+    @date		: 2023-10-30
+    @version	: 1.0.1
     @usage		: (imported when needed)
     @note		: ...
 '''
@@ -39,9 +39,9 @@ class server:
         '''
 
         if(self._bound):
-            cl, addr = self._socket.accept()
+            cl, _ = self._socket.accept()
 
-            request = cl.recv(1024)
+            _ = cl.recv(1024)
 
             cl.send('HTTP/1.0 200 OK\r\nContent-type: text/plain\r\n\r\n')
             cl.send(str(response))
@@ -75,5 +75,5 @@ class server:
 
             return len(host_bytes) == 4 and len(valid) == 4
 
-        except:
+        except Exception:
             return False

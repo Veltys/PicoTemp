@@ -9,8 +9,8 @@
     @brief		: Main module
 
     @author		: Veltys
-    @date		: 2023-10-29
-    @version	: 1.0.1
+    @date		: 2023-10-30
+    @version	: 1.0.2
     @usage		: python3 main.py | ./main.py
     @note		: ...
 '''
@@ -50,7 +50,7 @@ def main(argv = sys.argv[1:]):													# @UnusedVariable
     '''
 
     connection = wifi(ssid = config.wifi_ssid, password = config.wifi_password)
-    l = leds(config.leds_pins)
+    lds = leds(config.leds_pins)
     s = server()
     sensor = dht11(config.dht11_pin)
 
@@ -58,7 +58,7 @@ def main(argv = sys.argv[1:]):													# @UnusedVariable
     f_exit_thread.write('False')
     f_exit_thread.close()
 
-    _thread.start_new_thread(l.blink, (1, sys.maxsize, True))
+    _thread.start_new_thread(lds.blink, (1, sys.maxsize, True))
 
     sleep(1)
 
@@ -67,13 +67,13 @@ def main(argv = sys.argv[1:]):													# @UnusedVariable
         f_exit_thread.write('True')
         f_exit_thread.close()
 
-        l.off(1)
-        l.on(2)
+        lds.off(1)
+        lds.on(2)
 
         if(DEBUG):
             print('My IP is: ' + connection.ip())
 
-        if(s.bind()):
+        if(s.bind(ip = connection.ip())):
             while(True):
                 sensor.measure()
 
@@ -85,15 +85,16 @@ def main(argv = sys.argv[1:]):													# @UnusedVariable
         f_exit_thread.write('True')
         f_exit_thread.close()
 
-        l.off(1)
-        l.on(0)
+        lds.off(1)
+        lds.on(0)
 
     connection.disconnect()
 
     for i in range(3):
-        l.off(i)
+        lds.off(i)
 
     sys.exit(ExitStatus.success)
+
 
 if __name__ == "__main__":
     main(sys.argv[1:])

@@ -9,16 +9,17 @@
     @brief		: WiFi connector module
 
     @author		: Veltys
-    @date		: 2023-10-29
-    @version	: 1.0.0
+    @date		: 2023-10-30
+    @version	: 1.0.1
     @usage		: (imported when needed)
     @note		: ...
 '''
 
 
+from time import sleep															# Sleep function
+
 import network																	# Network management
 
-from time import sleep															# Sleep function
 
 class wifi:
     _password	= None
@@ -50,7 +51,7 @@ class wifi:
 
             @return						: Success of the connection
         '''
-        
+
         if(self._ssid != None and self._password != None):
             self._wlan = network.WLAN(network.STA_IF)
             self._wlan.active(True)

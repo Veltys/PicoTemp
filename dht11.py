@@ -9,8 +9,8 @@
     @brief		: DHT11 sensor manager module
 
     @author		: Veltys
-    @date		: 2023-10-29
-    @version	: 1.0.0
+    @date		: 2023-10-30
+    @version	: 1.0.1
     @usage		: (imported when needed)
     @note		: ...
 '''
@@ -18,7 +18,6 @@
 
 from dht import DHT11
 from machine import Pin
-from time import sleep
 
 
 class dht11:
