@@ -17,6 +17,10 @@ PicoTemp measures the temperature thanks to a DHT11 sensor and returns it in the
 - [ ] Screen support... which reminds me...
     - [ ] ... buy an screen, [like this one](https://amzn.eu/d/5Pab0Ox)
 
+### [1.0.1] - 2023-10-29
+#### Fixed
+- Various optimizations
+
 ### [1.0.0] - 2023-10-29
 #### Added
 - Pre-existent work

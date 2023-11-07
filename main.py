@@ -10,7 +10,7 @@
 
     @author		: Veltys
     @date		: 2023-10-29
-    @version	: 1.0.0
+    @version	: 1.0.1
     @usage		: python3 main.py | ./main.py
     @note		: ...
 '''
@@ -21,10 +21,13 @@ import _thread																	# Low-level threads management
 import errno                                                                    # Error codes
 import sys																		# System-specific parameters and functions
 
+from exitstatus import ExitStatus                                               # POSIX exit status codes
+
 from dht11 import dht11															# DHT11 sensor management
 from leds import leds															# LEDs management
 from server import server														# HTTP server
 from wifi import wifi															# WiFi hardware management
+
 
 try:
     from config import config                                                   # Configuration
@@ -37,7 +40,15 @@ except ImportError:
 DEBUG = False
 
 
-def main(argv = sys.argv[1:]):
+def main(argv = sys.argv[1:]):													# @UnusedVariable
+    '''!
+        Performs the needed operations to work
+
+        @param argv:    Program arguments
+
+        @return:        Return code
+    '''
+
     connection = wifi(ssid = config.wifi_ssid, password = config.wifi_password)
     l = leds(config.leds_pins)
     s = server()
@@ -82,6 +93,7 @@ def main(argv = sys.argv[1:]):
     for i in range(3):
         l.off(i)
 
+    sys.exit(ExitStatus.success)
 
 if __name__ == "__main__":
     main(sys.argv[1:])
