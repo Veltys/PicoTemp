@@ -9,8 +9,8 @@
     @brief		: WiFi connector module
 
     @author		: Veltys
-    @date		: 2023-10-30
-    @version	: 1.0.1
+    @date		: 2023-11-07
+    @version	: 1.1.0
     @usage		: (imported when needed)
     @note		: ...
 '''
@@ -58,22 +58,17 @@ class wifi:
             self._wlan.connect(self._ssid, self._password)
 
             # Wait for connect or fail
-            max_wait = 10
+            max_wait = 30
 
             while(max_wait > 0):
-                if(self._wlan.status() < 0 or self._wlan.status() >= 3):
+                if(self._wlan.status() < network.STAT_IDLE or self._wlan.status() >= network.STAT_GOT_IP):
                     break
 
                 max_wait -= 1
 
                 sleep(1)
 
-            # Handle connection error
-            if self._wlan.status() == 3:
-                return True
-
-            else:
-                return False
+            return self._wlan.status()
 
         else:
             return False
@@ -95,7 +90,7 @@ class wifi:
             @return						: Current IP address value
         '''
 
-        if(self._wlan != None and self._wlan.status() == 3):
+        if(self._wlan != None and self._wlan.status() == network.STAT_GOT_IP):
             return self._wlan.ifconfig()[0]
 
         else:

@@ -13,12 +13,18 @@ PicoTemp measures the temperature thanks to a DHT11 sensor and returns it in the
 
 ## Changelog
 ### To-do (*TODO*)
-- [ ] Button support to switch off LEDs
-- [ ] Screen support... which reminds me...
+- [x] Buttons support to switch off ~~LEDs~~ screen and system
+- [x] Screen support... which reminds me...
     - [x] ... buy an screen, [like this one](https://amzn.eu/d/5Pab0Ox)
+- [ ] Way to restore screen manager thread if crashs
 
 ### Cancelled
 - [ ] ~~Asynchronous web server~~
+
+### [2.0.0] - 2023-11-12
+#### Addedd
+- Screen support
+- Buttons support
 
 ### [1.0.3] - 2023-11-04
 #### Fixed
@@ -52,3 +58,7 @@ PicoTemp measures the temperature thanks to a DHT11 sensor and returns it in the
 
 ## Acknowledgments, sources consulted and other credits
 * To the [official MicroPython documentation](https://docs.micropython.org/en/latest/), for obvious reasons
+* To the [Waveshare Wiki](https://www.waveshare.com/wiki/Pico-OLED-1.3), for the documentation available
+* [WiFi icon](https://openclipart.org/detail/245083/wireless-signal-icon)
+* [Error icon](https://www.iconexperience.com/g_collection/icons/?icon=sign_warning)
+* [Server icon](https://www.iconexperience.com/g_collection/icons/?icon=server)

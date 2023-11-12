@@ -9,14 +9,17 @@
     @brief		: HTTP server module
 
     @author		: Veltys
-    @date		: 2023-11-04
-    @version	: 1.0.2
+    @date		: 2023-11-11
+    @version	: 1.1.0
     @usage		: (imported when needed)
     @note		: ...
 '''
 
 
 import socket																	# Socket functions
+
+
+SOCKET_TIMEOUT = 30
 
 
 class server:
@@ -30,7 +33,9 @@ class server:
             Initializes default values of the class
         '''
 
-        self._socket = socket.socket()
+        self._socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+        self._socket.settimeout(SOCKET_TIMEOUT)
 
 
     def accept(self, response):
@@ -40,14 +45,28 @@ class server:
             @param response             : Plain text response
         '''
 
+        res = None
+
         if(self._bound):
-            cl, _ = self._socket.accept()
+            try:
+                cl, _ = self._socket.accept()
 
-            _ = cl.recv(1024)
+            except OSError:
+                res = False
 
-            cl.send('HTTP/1.0 200 OK\r\nContent-type: text/plain\r\n\r\n')
-            cl.send(str(response))
-            cl.close()
+            else:
+                _ = cl.recv(1024)
+
+                cl.send("HTTP/1.0 200 OK\r\nContent-type: text/plain\r\n\r\n")
+                cl.send(str(response))
+                cl.close()
+
+                res = True
+
+        else:
+            res = False
+
+        return res
 
 
     def bind(self, ip = '0.0.0.0', port = 80):
@@ -59,12 +78,26 @@ class server:
         '''
 
         if(server.valid_ip(ip) and port >= 0 and port <= 65535):
-            self._socket.bind(socket.getaddrinfo(ip, port)[0][-1])
-            self._socket.listen(1)
+            try:
+                self._socket.bind(socket.getaddrinfo(ip, port)[0][-1])
 
-            self._bound = True
+            except OSError:
+                self._bound = False
+
+            else:
+                self._socket.listen(1)
+
+                self._bound = True
 
         return self._bound
+
+
+    def close(self):
+        '''!
+            Socket closer
+        '''
+
+        self._socket.close()
 
 
     @staticmethod

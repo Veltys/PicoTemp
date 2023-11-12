@@ -9,8 +9,8 @@
     @brief		: DHT11 sensor manager module
 
     @author		: Veltys
-    @date		: 2023-10-30
-    @version	: 1.0.1
+    @date		: 2023-11-07
+    @version	: 1.0.2
     @usage		: (imported when needed)
     @note		: ...
 '''
@@ -57,6 +57,10 @@ class dht11:
         if(self._sensor != None):
             try:
                 self._sensor.measure()
+
+            except Exception:
+                self._temperature = None
+                self._humidity = None
 
             except OSError:
                 self._temperature = None

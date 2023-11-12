@@ -5,28 +5,29 @@
 '''!
     main
 
-    @file		: main.py
-    @brief		: Main module
+    @file       : main.py
+    @brief      : Main module
 
-    @author		: Veltys
-    @date		: 2023-11-04
-    @version	: 1.0.3
-    @usage		: python3 main.py | ./main.py
-    @note		: ...
+    @author     : Veltys
+    @date       : 2023-11-12
+    @version    : 2.0.0
+    @usage      : python3 main.py | ./main.py
+    @note       : ...
 '''
 
 
-from time import sleep															# Sleep function
-import _thread																	# Low-level threads management
+import _thread                                                                  # Low-level threads management
 import errno                                                                    # Error codes
-import sys																		# System-specific parameters and functions
+import sys                                                                      # System-specific parameters and functions
+import time                                                                     # Time manipulation
 
-from exitstatus import ExitStatus                                               # POSIX exit status codes
-
-from dht11 import dht11															# DHT11 sensor management
-from leds import leds															# LEDs management
-from server import server														# HTTP server
-from wifi import wifi															# WiFi hardware management
+from OLED_1inch3 import OLED_1inch3                                             # OLED screen hardware management
+from dht11 import dht11                                                         # DHT11 sensor management
+from machine import Pin                                                         # GPIO pins management
+from server import server                                                       # HTTP server
+from wifi import wifi                                                           # WiFi hardware management
+import network                                                                  # Network management
+import ntptime
 
 
 try:
@@ -38,9 +39,203 @@ except ImportError:
 
 
 DEBUG = False
+WIFI_STAT = {
+    network.STAT_IDLE: 'IDLE',
+    network.STAT_CONNECTING: 'CONNECTING',
+    network.STAT_WRONG_PASSWORD: 'WRONG_PASSWORD',
+    network.STAT_NO_AP_FOUND: 'NO_AP_FOUND',
+    network.STAT_CONNECT_FAIL: 'CONNECT_FAIL',
+    network.STAT_GOT_IP: 'SUCCESS'
+}
 
 
-def main(argv = sys.argv[1:]):													# @UnusedVariable
+bound = None
+do_exit = [ False, False ]
+ip = '0.0.0.0'
+measures = {
+    'humidity': None,
+    'temperature': None,
+}
+uptime_initial = None
+
+
+def screen_buttons_manager():
+    NUM_SERVER_IMAGES = 2
+    NUM_WIFI_IMAGES = 4
+    OFFSET_H = 1
+    OFFSET_V = 0
+
+
+    global bound
+    global do_exit
+    global ip
+    global measures
+    global uptime_initial
+
+    buttons = [
+        Pin(15, Pin.IN, Pin.PULL_UP),
+        Pin(17, Pin.IN, Pin.PULL_UP),
+    ]
+    humidity = None
+    now = None
+    now_text = ''
+    oled = OLED_1inch3()
+    screen_on = True
+    server_image = 0
+    server_images = []
+    temperature = None
+    uptime = ''
+    wifi_image = 0
+    wifi_images = []
+
+    if(DEBUG):
+        print('WiFi connect...')
+
+    for i in range(1, NUM_WIFI_IMAGES + 1):
+        wifi_images.append(OLED_1inch3.load_pbm(f"./resources/wifi{ i }.pbm", 32, 30))
+
+    for i in range(1, NUM_SERVER_IMAGES + 1):
+        server_images.append(OLED_1inch3.load_pbm(f"./resources/server{ i }.pbm", 32, 30))
+
+
+    while(not do_exit[1]):
+        for i in range(60 * 5):
+            if(DEBUG):
+                print(f"i = { i }")
+
+            if(do_exit[1]):
+                if(DEBUG):
+                    print('Exit event detected 👋🏼')
+                    print(
+f'''
+Status:
+    {{ do_exit[0] ➡ { do_exit[0] } }},
+    {{ do_exit[1] ➡ { do_exit[1] } }},
+'''
+                    )
+
+                do_exit[0] = True
+                do_exit[1] = True
+
+            if(not(buttons[0].value()) or not(buttons[1].value())):
+                if(DEBUG):
+                    print('Button event detected 😮')
+                    print(
+f'''
+Status:
+    {{ buttons[0].value() ➡ { buttons[0].value() } (screen on / off) }},
+    {{ buttons[1].value() ➡ { buttons[1].value() } (exit) }},
+'''
+                    )
+
+                if(not(buttons[0].value())):
+                    screen_on = not screen_on
+
+                    time.sleep(0.5)
+
+                    if(screen_on):
+                        if(DEBUG):
+                            print('Switching screen on 💡')
+
+                        oled.write_cmd(0xAD)
+                        oled.write_cmd(0x8A)
+                        oled.write_cmd(0XAF)
+
+                    else:
+                        if(DEBUG):
+                            print('Switching screen off 🕯️')
+
+                        oled.fill(0xFFFF)
+                        oled.write_cmd(0xAE)
+
+                elif(not(buttons[1].value())):
+                    if(DEBUG):
+                        print('Bye, bye 👋🏼')
+
+                    do_exit[0] = True
+                    do_exit[1] = True
+
+                break
+
+            if(screen_on):
+                if(ip == '0.0.0.0'):
+                    wifi_image = i % NUM_WIFI_IMAGES
+
+                elif(ip == 'WiFi Error'):
+                    wifi_images.append(OLED_1inch3.load_pbm('./resources/error.pbm', 32, 30))
+
+                    wifi_image = NUM_WIFI_IMAGES
+
+                else:
+                    wifi_image = NUM_WIFI_IMAGES - 1
+
+                if(bound is not None):
+                    if(bound):
+                        server_image = i % NUM_SERVER_IMAGES
+
+                    else:
+                        server_images.append(OLED_1inch3.load_pbm('./resources/error.pbm', 32, 30))
+
+                        server_image = NUM_SERVER_IMAGES
+
+                if(measures['temperature'] is not None):
+                    temperature = f"T: { measures['temperature'] } C"
+
+                else:
+                    temperature = "T: ?? C"
+
+                if(measures['humidity'] is not None):
+                    humidity = f"H: { measures['humidity'] } %"
+
+                else:
+                    humidity = "H: ?? %"
+
+                if(i % 100 == 0):
+                    now = time.localtime()
+
+                if(i % 6 == 0 or (i - 1) % 6 == 0 or (i - 2) % 6 == 0):
+                    now_text = f"{ '{:0>2}'.format(now[3]) }:{ '{:0>2}'.format(now[4]) } { '{:0>2}'.format(now[2]) }/{ '{:0>2}'.format(now[1]) }/{ now[0] }"
+
+                else:
+                    now_text = f"{ '{:0>2}'.format(now[3]) } { '{:0>2}'.format(now[4]) } { '{:0>2}'.format(now[2]) }/{ '{:0>2}'.format(now[1]) }/{ now[0] }"
+
+                if(uptime_initial is not None):
+                    if(i % 2 == 0):
+                        uptime_diff = time.time() - uptime_initial
+
+                        (minutes, seconds) = divmod(uptime_diff, 60)
+                        (hours, minutes) = divmod(minutes, 60)
+                        (days, hours) = divmod(hours, 24)
+
+                        uptime = f"Up: { days } d { '{:0>2}'.format(hours) }:{ '{:0>2}'.format(minutes) }:{ '{:0>2}'.format(seconds) }"
+
+                oled.fill(0)                                                    # Clean screen
+                oled.blit(wifi_images[wifi_image], 0, 0 + OFFSET_V)
+                oled.blit(server_images[server_image], 34 + OFFSET_H, 0 + OFFSET_V) if(bound is not None) else None
+                oled.text(temperature, 68 + OFFSET_H * 2 + 2, 0 + OFFSET_V + 6, oled.white)
+                oled.text(humidity, 68 + OFFSET_H * 2 + 2, 10 + OFFSET_V + 6, oled.white)
+                oled.rect(0, 32 + OFFSET_V, 128, 2, oled.white, True)
+                oled.text(ip, int((128 - len(ip) * 8) / 2), 36 + OFFSET_V, oled.white)
+                oled.text(now_text, int((128 - len(now_text) * 8) / 2), 46 + OFFSET_V, oled.white)
+                oled.text(uptime, int((128 - len(uptime) * 8) / 2), 56 + OFFSET_V, oled.white) if(uptime_initial is not None) else None
+                oled.show()
+
+            time.sleep(0.1)
+
+        if(i >= 60 and screen_on):
+            if(DEBUG):
+                print('Switching screen off 🕯️')
+
+            screen_on = False
+
+            oled.fill(0xFFFF)
+            oled.write_cmd(0xAE)
+
+    oled.fill(0xFFFF)
+    oled.write_cmd(0xAE)
+
+
+def main(argv = sys.argv[1:]): # @UnusedVariable
     '''!
         Performs the needed operations to work
 
@@ -49,49 +244,86 @@ def main(argv = sys.argv[1:]):													# @UnusedVariable
         @return:        Return code
     '''
 
+    global bound
+    global do_exit
+    global ip
+    global measures
+    global uptime_initial
+
     connection = wifi(ssid = config.wifi_ssid, password = config.wifi_password)
-    lds = leds(config.leds_pins)
     s = server()
     sensor = dht11(config.dht11_pin)
 
-    f_exit_thread = open(config.exit_thread_file, 'w')
-    f_exit_thread.write('False')
-    f_exit_thread.close()
+    sensor.measure()
 
-    _thread.start_new_thread(lds.blink, (1, sys.maxsize, True))
+    measures['humidity'] = sensor.humidity()
+    measures['temperature'] = sensor.temperature()
 
-    sleep(1)
+    # Thread to make screen_buttons_manager
+    _thread.start_new_thread(screen_buttons_manager, ())
 
-    if(connection.connect()):
-        f_exit_thread = open(config.exit_thread_file, 'w')
-        f_exit_thread.write('True')
-        f_exit_thread.close()
+    time.sleep(1)
 
-        lds.off(1)
-        lds.on(2)
+    connected = connection.connect()
+
+    if(connected == network.STAT_GOT_IP):
+        ip = connection.ip()
 
         if(DEBUG):
-            print('My IP is: ' + connection.ip())
+            print('WiFi connected 😁')
+            print(ip)
 
-        if(s.bind(ip = connection.ip())):
-            while(True):
+        try:
+#           ntptime.settime(timezone = 1, server = 'hora.roa.es')
+            ntptime.settime()
+
+        except OSError:
+            pass
+
+        else:
+            uptime_initial = time.time()
+
+        bound = s.bind(ip = connection.ip())
+
+        if(bound):
+            if(DEBUG):
+                print('Server bound 👍🏼')
+
+            while(not do_exit[0]):
+                if(measures['humidity'] is not None and measures['temperature'] is not None):
+                    if(DEBUG):
+                        print(f"Temp: { measures['temperature'] }º C")
+
+                    s.accept(measures['temperature'])
+
+                else:
+                    if(DEBUG):
+                        print('Cannot get temp 😭')
+
                 sensor.measure()
 
-                if(sensor.temperature() != None):
-                    s.accept(sensor.temperature())
+                measures['humidity'] = sensor.humidity()
+                measures['temperature'] = sensor.temperature()
+
+        else:
+            if(DEBUG):
+                print('Cannot bind 👎🏼')
 
     else:
-        f_exit_thread = open(config.exit_thread_file, 'w')
-        f_exit_thread.write('True')
-        f_exit_thread.close()
+        ip = 'WiFi Error'
 
-        lds.off(1)
-        lds.on(0)
+        if(DEBUG):
+            print(f"WiFi error: { WIFI_STAT[connected] }")
+
+
+    if(not do_exit[0]):
+        time.sleep(30)
+
+    do_exit[1] = True
+
+    time.sleep(1)
 
     connection.disconnect()
-
-    for i in range(3):
-        lds.off(i)
 
     sys.exit(0)
 
