@@ -17,9 +17,15 @@ PicoTemp measures the temperature thanks to a DHT11 sensor and returns it in the
 - [x] Screen support... which reminds me...
     - [x] ... buy an screen, [like this one](https://amzn.eu/d/5Pab0Ox)
 - [ ] Way to restore screen manager thread if crashs
+- [ ] Better GMT correction handling
+- [ ] DST handling
 
 ### Cancelled
 - [ ] ~~Asynchronous web server~~
+
+### [2.0.2] - 2023-11-13
+#### Fixed
+- Initial GMT time correction
 
 ### [2.0.1] - 2023-11-12
 #### Fixed

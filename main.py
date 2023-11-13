@@ -9,8 +9,8 @@
     @brief      : Main module
 
     @author     : Veltys
-    @date       : 2023-11-12
-    @version    : 2.0.1
+    @date       : 2023-11-13
+    @version    : 2.0.2
     @usage      : python3 main.py | ./main.py
     @note       : ...
 '''
@@ -228,7 +228,7 @@ Status:
                     humidity = "H: ?? %"
 
                 if(i % 100 == 0):
-                    now = time.localtime()
+                    now = time.localtime(time.time() + 60 * 60)                 # TODO: DST handling
 
                 if(i % 6 == 0 or (i - 1) % 6 == 0 or (i - 2) % 6 == 0):
                     now_text = f"{ '{:0>2}'.format(now[3]) }:{ '{:0>2}'.format(now[4]) } { '{:0>2}'.format(now[2]) }/{ '{:0>2}'.format(now[1]) }/{ now[0] }"
@@ -304,8 +304,9 @@ def main(argv = sys.argv[1:]): # @UnusedVariable
             print('WiFi connected 😁')
             print(ip)
 
+        ntptime.host = "hora.roa.es"
+
         try:
-#           ntptime.settime(timezone = 1, server = 'hora.roa.es')
             ntptime.settime()
 
         except OSError:
