@@ -10,7 +10,7 @@
 
     @author     : Veltys
     @date       : 2023-11-12
-    @version    : 2.0.0
+    @version    : 2.0.1
     @usage      : python3 main.py | ./main.py
     @note       : ...
 '''
@@ -59,18 +59,91 @@ measures = {
 uptime_initial = None
 
 
-def screen_buttons_manager():
-    NUM_SERVER_IMAGES = 2
-    NUM_WIFI_IMAGES = 4
+def global_exit():
+    global do_exit
+
+    if (DEBUG):
+        print(
+            f'''
+
+Status:
+
+    {{ do_exit[0] ➡ { do_exit[0] } }},
+
+    {{ do_exit[1] ➡ { do_exit[1] } }},
+
+''')
+    do_exit[0] = True
+    do_exit[1] = True
+
+
+def button_event(buttons, oled, screen_on):
+    if(not buttons[0].value()):
+        screen_on = not screen_on
+
+        time.sleep(0.5)
+
+        if(screen_on):
+            if (DEBUG):
+                print('Switching screen on 💡')
+
+            oled.write_cmd(0xAD)
+            oled.write_cmd(0x8A)
+            oled.write_cmd(0XAF)
+
+        else:
+            if (DEBUG):
+                print('Switching screen off 🕯️')
+
+            oled.fill(0xFFFF)
+            oled.write_cmd(0xAE)
+
+    elif (not (buttons[1].value())):
+        if (DEBUG):
+            print('Bye, bye 👋🏼')
+
+        global_exit()
+
+    return screen_on
+
+
+def paint_screen(oled, wifi_image, server_image, temperature, humidity, ip, now, uptime):
     OFFSET_H = 1
     OFFSET_V = 0
 
+    oled.fill(0) # Clean screen
 
-    global bound
-    global do_exit
-    global ip
-    global measures
-    global uptime_initial
+    oled.blit(wifi_image, 0, 0 + OFFSET_V)
+
+    if (bound is not None):
+        oled.blit(server_image, 34 + OFFSET_H, 0 + OFFSET_V)
+
+    oled.text(temperature, 68 + OFFSET_H * 2 + 2, 0 + OFFSET_V + 6, oled.white)
+
+    oled.text(humidity, 68 + OFFSET_H * 2 + 2, 10 + OFFSET_V + 6, oled.white)
+
+    oled.rect(0, 32 + OFFSET_V, 128, 2, oled.white, True)
+
+    oled.text(ip, int((128 - len(ip) * 8) / 2), 36 + OFFSET_V, oled.white)
+
+    oled.text(now, int((128 - len(now) * 8) / 2), 46 + OFFSET_V, oled.white)
+
+    if (uptime_initial is not None):
+        oled.text(uptime, int((128 - len(uptime) * 8) / 2), 56 + OFFSET_V, oled.white)
+
+    oled.show()
+
+
+def screen_buttons_manager():
+    NUM_SERVER_IMAGES = 2
+    NUM_WIFI_IMAGES = 4
+
+
+#   global bound
+#   global do_exit
+#   global ip
+#   global measures
+#   global uptime_initial
 
     buttons = [
         Pin(15, Pin.IN, Pin.PULL_UP),
@@ -81,15 +154,12 @@ def screen_buttons_manager():
     now_text = ''
     oled = OLED_1inch3()
     screen_on = True
-    server_image = 0
     server_images = []
+    server_image_number = 0
     temperature = None
     uptime = ''
-    wifi_image = 0
     wifi_images = []
-
-    if(DEBUG):
-        print('WiFi connect...')
+    wifi_image_number = 0
 
     for i in range(1, NUM_WIFI_IMAGES + 1):
         wifi_images.append(OLED_1inch3.load_pbm(f"./resources/wifi{ i }.pbm", 32, 30))
@@ -106,16 +176,8 @@ def screen_buttons_manager():
             if(do_exit[1]):
                 if(DEBUG):
                     print('Exit event detected 👋🏼')
-                    print(
-f'''
-Status:
-    {{ do_exit[0] ➡ { do_exit[0] } }},
-    {{ do_exit[1] ➡ { do_exit[1] } }},
-'''
-                    )
 
-                do_exit[0] = True
-                do_exit[1] = True
+                global_exit()
 
             if(not(buttons[0].value()) or not(buttons[1].value())):
                 if(DEBUG):
@@ -128,55 +190,30 @@ Status:
 '''
                     )
 
-                if(not(buttons[0].value())):
-                    screen_on = not screen_on
-
-                    time.sleep(0.5)
-
-                    if(screen_on):
-                        if(DEBUG):
-                            print('Switching screen on 💡')
-
-                        oled.write_cmd(0xAD)
-                        oled.write_cmd(0x8A)
-                        oled.write_cmd(0XAF)
-
-                    else:
-                        if(DEBUG):
-                            print('Switching screen off 🕯️')
-
-                        oled.fill(0xFFFF)
-                        oled.write_cmd(0xAE)
-
-                elif(not(buttons[1].value())):
-                    if(DEBUG):
-                        print('Bye, bye 👋🏼')
-
-                    do_exit[0] = True
-                    do_exit[1] = True
+                screen_on = button_event(buttons, oled, screen_on)
 
                 break
 
             if(screen_on):
                 if(ip == '0.0.0.0'):
-                    wifi_image = i % NUM_WIFI_IMAGES
+                    wifi_image_number = i % NUM_WIFI_IMAGES
 
                 elif(ip == 'WiFi Error'):
                     wifi_images.append(OLED_1inch3.load_pbm('./resources/error.pbm', 32, 30))
 
-                    wifi_image = NUM_WIFI_IMAGES
+                    wifi_image_number = NUM_WIFI_IMAGES
 
                 else:
-                    wifi_image = NUM_WIFI_IMAGES - 1
+                    wifi_image_number = NUM_WIFI_IMAGES - 1
 
                 if(bound is not None):
                     if(bound):
-                        server_image = i % NUM_SERVER_IMAGES
+                        server_image_number = i % NUM_SERVER_IMAGES
 
                     else:
                         server_images.append(OLED_1inch3.load_pbm('./resources/error.pbm', 32, 30))
 
-                        server_image = NUM_SERVER_IMAGES
+                        server_image_number = NUM_SERVER_IMAGES
 
                 if(measures['temperature'] is not None):
                     temperature = f"T: { measures['temperature'] } C"
@@ -209,16 +246,7 @@ Status:
 
                         uptime = f"Up: { days } d { '{:0>2}'.format(hours) }:{ '{:0>2}'.format(minutes) }:{ '{:0>2}'.format(seconds) }"
 
-                oled.fill(0)                                                    # Clean screen
-                oled.blit(wifi_images[wifi_image], 0, 0 + OFFSET_V)
-                oled.blit(server_images[server_image], 34 + OFFSET_H, 0 + OFFSET_V) if(bound is not None) else None
-                oled.text(temperature, 68 + OFFSET_H * 2 + 2, 0 + OFFSET_V + 6, oled.white)
-                oled.text(humidity, 68 + OFFSET_H * 2 + 2, 10 + OFFSET_V + 6, oled.white)
-                oled.rect(0, 32 + OFFSET_V, 128, 2, oled.white, True)
-                oled.text(ip, int((128 - len(ip) * 8) / 2), 36 + OFFSET_V, oled.white)
-                oled.text(now_text, int((128 - len(now_text) * 8) / 2), 46 + OFFSET_V, oled.white)
-                oled.text(uptime, int((128 - len(uptime) * 8) / 2), 56 + OFFSET_V, oled.white) if(uptime_initial is not None) else None
-                oled.show()
+                paint_screen(oled, wifi_images[wifi_image_number], server_images[server_image_number], temperature, humidity, ip, now_text, uptime)
 
             time.sleep(0.1)
 
@@ -265,6 +293,9 @@ def main(argv = sys.argv[1:]): # @UnusedVariable
     time.sleep(1)
 
     connected = connection.connect()
+
+    if(DEBUG):
+        print('WiFi connect...')
 
     if(connected == network.STAT_GOT_IP):
         ip = connection.ip()
@@ -319,7 +350,7 @@ def main(argv = sys.argv[1:]): # @UnusedVariable
     if(not do_exit[0]):
         time.sleep(30)
 
-    do_exit[1] = True
+    global_exit()
 
     time.sleep(1)
 

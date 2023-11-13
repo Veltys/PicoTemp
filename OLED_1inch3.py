@@ -11,7 +11,7 @@
     @author     : Waveshare
     @author     : Veltys
     @date       : 2023-11-12
-    @version    : 1.1.0
+    @version    : 1.1.1
     @usage      : (imported when needed)
     @note       : ...
 '''
@@ -66,7 +66,7 @@ class OLED_1inch3(framebuf.FrameBuffer):
     def init_display(self):
         '''!
             Initialize display
-            
+
             Initializes the OLED display by sending a sequence of commands
         '''
 
@@ -79,20 +79,20 @@ class OLED_1inch3(framebuf.FrameBuffer):
         time.sleep(0.01)
 
         self.rst(1)
-        
+
         self.write_cmd(0xAE)                                                    # Turn off OLED display
 
         self.write_cmd(0x00)                                                    # Set lower column address
         self.write_cmd(0x10)                                                    # Set higher column address
 
         self.write_cmd(0xB0)                                                    # Set page address
-      
+
         self.write_cmd(0xDC)                                                    # Set display start line
-        self.write_cmd(0x00) 
+        self.write_cmd(0x00)
         self.write_cmd(0x81)                                                    # Contract control
         self.write_cmd(0x6F)                                                    # 128
         self.write_cmd(0x21)                                                    # Set Memory addressing mode (0x20/0x21) #
-    
+
         self.write_cmd(0xA0)                                                    # Set segment remap
         self.write_cmd(0xC0)                                                    # Com scan direction
         self.write_cmd(0xA4)                                                    # Disable Entire Display On (0xA4/0xA5)
@@ -100,19 +100,19 @@ class OLED_1inch3(framebuf.FrameBuffer):
         self.write_cmd(0xA6)                                                    # normal / reverse
         self.write_cmd(0xA8)                                                    # Multiplex ratio
         self.write_cmd(0x3F)                                                    # duty = 1 / 64
-  
+
         self.write_cmd(0xD3)                                                    # Set display offset
         self.write_cmd(0x60)
 
         self.write_cmd(0xD5)                                                    # Set osc division
         self.write_cmd(0x41)
-    
+
         self.write_cmd(0xD9)                                                    # Set pre-charge period
-        self.write_cmd(0x22)   
+        self.write_cmd(0x22)
 
         self.write_cmd(0xDB)                                                    # Set vcomh
-        self.write_cmd(0x35)  
-    
+        self.write_cmd(0x35)
+
         self.write_cmd(0xAD)                                                    # Set charge pump enable
         self.write_cmd(0x8A)                                                    # Set DC-DC enable (a=0:disable; a=1:enable)
         self.write_cmd(0XAF)
@@ -121,7 +121,7 @@ class OLED_1inch3(framebuf.FrameBuffer):
     def show(self):
         '''!
             Show buffer on the display
-            
+
             Transfers the buffer data to the OLED display for rendering
         '''
 
@@ -141,7 +141,7 @@ class OLED_1inch3(framebuf.FrameBuffer):
     def load_pbm(filename, width, height):
         '''!
             Load image from PBM file
-            
+
             Loads an image from a PBM (Portable BitMap) file and returns a FrameBuffer object
 
 
