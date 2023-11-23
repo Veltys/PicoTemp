@@ -19,9 +19,17 @@ PicoTemp measures the temperature thanks to a DHT11 sensor and returns it in the
 - [ ] Way to restore screen manager thread if crashs
 - [ ] Better GMT correction handling
 - [ ] DST handling
+- [ ] Way to restore WiFi connection
 
 ### Cancelled
 - [ ] ~~Asynchronous web server~~
+
+### [2.1.0] - 2023-11-25
+#### Added
+- Support for multiple DHT11 sensors
+
+#### Fixed
+- Some optimizations
 
 ### [2.0.3] - 2023-11-13
 #### Fixed

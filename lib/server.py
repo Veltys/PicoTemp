@@ -5,17 +5,18 @@
 '''!
     server
 
-    @file		: server.py
-    @brief		: HTTP server module
+    @file       : server.py
+    @brief      : HTTP server module
 
-    @author		: Veltys
-    @date		: 2023-11-11
-    @version	: 1.1.0
-    @usage		: (imported when needed)
-    @note		: ...
+    @author     : Veltys
+    @date       : 2023-11-25
+    @version    : 1.2.0
+    @usage      : (imported when needed)
+    @note       : ...
 '''
 
 
+from re import match                                                            # match function for regular expressions
 import socket																	# Socket functions
 
 
@@ -38,7 +39,7 @@ class server:
         self._socket.settimeout(SOCKET_TIMEOUT)
 
 
-    def accept(self, response):
+    def accept(self, response, ip):
         '''!
             Socket accepter
             
@@ -55,10 +56,37 @@ class server:
                 res = False
 
             else:
-                _ = cl.recv(1024)
+                request = str(cl.recv(1024).decode()).splitlines()[0]           # Decode, convert to str, split in lines and take the first one
 
-                cl.send("HTTP/1.0 200 OK\r\nContent-type: text/plain\r\n\r\n")
-                cl.send(str(response))
+                matched = match(r".* HTTP/(\d+\.?\d*)", request)
+
+                if(matched):
+                    http_version = matched.group(1)
+
+                    if(match(r"GET /(?:\?.*)? HTTP/(?:\d+\.?\d*)", request)):
+                        request = request[4:]                                   # Trim the "GET " initial part
+
+                        matched = match(r"/\?.*sensor=(\d)", request)
+
+                        if(matched) and 0 <= int(matched.group(1)) < len(response):
+                            index = int(matched.group(1))
+
+                            cl.send(f"HTTP/{ http_version } 200 OK\r\nContent-type: text/plain\r\n\r\n")
+                            cl.send(str(response[index]) if response[index] is not None else '??')
+
+                        else:
+                            index = 0
+
+                            cl.send(f"HTTP/{ http_version } 307 Temporary Redirect\r\nLocation: http://{ ip }/?sensor=0\r\n\r\n")
+                            cl.send(str(response[index]) if response[index] is not None else '??')
+
+                    else:
+                        cl.send(f"HTTP/{ http_version } 404 Not Found\r\nContent-type: text/plain\r\n\r\n")
+                        cl.send('404 Error: Not Found')
+
+                else:
+                    pass
+
                 cl.close()
 
                 res = True

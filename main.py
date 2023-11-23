@@ -9,8 +9,8 @@
     @brief      : Main module
 
     @author     : Veltys
-    @date       : 2023-11-13
-    @version    : 2.0.2
+    @date       : 2023-11-25
+    @version    : 2.3.0
     @usage      : python3 main.py | ./main.py
     @note       : ...
 '''
@@ -52,11 +52,14 @@ WIFI_STAT = {
 bound = None
 do_exit = [ False, False ]
 ip = '0.0.0.0'
-measures = {
-    'humidity': None,
-    'temperature': None,
-}
+measures = []
 uptime_initial = None
+
+for i, _ in enumerate(config.dht11_pins):
+    measures.append({
+        'humidity': None,
+        'temperature': None,
+    })
 
 
 def global_exit():
@@ -146,17 +149,20 @@ def screen_buttons_manager():
 #   global uptime_initial
 
     buttons = [
-        Pin(15, Pin.IN, Pin.PULL_UP),
-        Pin(17, Pin.IN, Pin.PULL_UP),
+        Pin(config.buttons_pins[0], Pin.IN, Pin.PULL_UP),
+        Pin(config.buttons_pins[1], Pin.IN, Pin.PULL_UP),
     ]
     humidity = None
+    image_error = OLED_1inch3.load_pbm('./resources/error.pbm', 32, 30)
     now = None
     now_text = ''
+    num_measures = len(measures)
     oled = OLED_1inch3()
     screen_on = True
     server_images = []
     server_image_number = 0
     temperature = None
+    ticks = 60 * 5
     uptime = ''
     wifi_images = []
     wifi_image_number = 0
@@ -169,7 +175,7 @@ def screen_buttons_manager():
 
 
     while(not do_exit[1]):
-        for i in range(60 * 5):
+        for i in range(ticks):
             if(DEBUG):
                 print(f"i = { i }")
 
@@ -199,9 +205,7 @@ Status:
                     wifi_image_number = i % NUM_WIFI_IMAGES
 
                 elif(ip == 'WiFi Error'):
-                    wifi_images.append(OLED_1inch3.load_pbm('./resources/error.pbm', 32, 30))
-
-                    wifi_image_number = NUM_WIFI_IMAGES
+                    wifi_image_number = -1
 
                 else:
                     wifi_image_number = NUM_WIFI_IMAGES - 1
@@ -211,18 +215,18 @@ Status:
                         server_image_number = i % NUM_SERVER_IMAGES
 
                     else:
-                        server_images.append(OLED_1inch3.load_pbm('./resources/error.pbm', 32, 30))
+                        server_image_number = -1
 
-                        server_image_number = NUM_SERVER_IMAGES
+                measures_index = i // (ticks // num_measures)
 
-                if(measures['temperature'] is not None):
-                    temperature = f"T: { measures['temperature'] } C"
+                if(measures[measures_index]['temperature'] is not None):
+                    temperature = f"T: { measures[measures_index]['temperature'] } C"
 
                 else:
                     temperature = "T: ?? C"
 
-                if(measures['humidity'] is not None):
-                    humidity = f"H: { measures['humidity'] } %"
+                if(measures[measures_index]['humidity'] is not None):
+                    humidity = f"H: { measures[measures_index]['humidity'] } %"
 
                 else:
                     humidity = "H: ?? %"
@@ -246,7 +250,16 @@ Status:
 
                         uptime = f"Up: { days } d { '{:0>2}'.format(hours) }:{ '{:0>2}'.format(minutes) }:{ '{:0>2}'.format(seconds) }"
 
-                paint_screen(oled, wifi_images[wifi_image_number], server_images[server_image_number], temperature, humidity, ip, now_text, uptime)
+                paint_screen(
+                    oled,
+                    wifi_images[wifi_image_number] if(wifi_image_number >= 0) else image_error,
+                    server_images[server_image_number] if(server_image_number >= 0) else image_error,
+                    temperature,
+                    humidity,
+                    ip,
+                    now_text,
+                    uptime
+                )
 
             time.sleep(0.1)
 
@@ -280,12 +293,13 @@ def main(argv = sys.argv[1:]): # @UnusedVariable
 
     connection = wifi(ssid = config.wifi_ssid, password = config.wifi_password)
     s = server()
-    sensor = dht11(config.dht11_pin)
+    sensors = [dht11(pin) for pin in config.dht11_pins]
 
-    sensor.measure()
+    for i, sensor in enumerate(sensors):
+        sensor.measure()
 
-    measures['humidity'] = sensor.humidity()
-    measures['temperature'] = sensor.temperature()
+        measures[i]['humidity'] = sensor.humidity()
+        measures[i]['temperature'] = sensor.temperature()
 
     # Thread to make screen_buttons_manager
     _thread.start_new_thread(screen_buttons_manager, ())
@@ -322,20 +336,23 @@ def main(argv = sys.argv[1:]): # @UnusedVariable
                 print('Server bound 👍🏼')
 
             while(not do_exit[0]):
-                if(measures['humidity'] is not None and measures['temperature'] is not None):
+                if(measures[0]['humidity'] is not None and measures[0]['temperature'] is not None):
                     if(DEBUG):
-                        print(f"Temp: { measures['temperature'] }º C")
+                        print(f"Temp: { measures[0]['temperature'] }º C")
 
-                    s.accept(measures['temperature'])
+                    s.accept([measure.get('temperature') for measure in measures], ip)
 
                 else:
                     if(DEBUG):
                         print('Cannot get temp 😭')
 
-                sensor.measure()
+                for i, sensor in enumerate(sensors):
+                    sensor.measure()
 
-                measures['humidity'] = sensor.humidity()
-                measures['temperature'] = sensor.temperature()
+                    measures[i]['humidity'] = sensor.humidity()
+                    measures[i]['temperature'] = sensor.temperature()
+
+                # TODO: check WiFi status
 
         else:
             if(DEBUG):
