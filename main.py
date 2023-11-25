@@ -110,6 +110,81 @@ def button_event(buttons, oled, screen_on):
     return screen_on
 
 
+def determine_image_number(i, total_ip, total_server):
+    # global bound
+    # global ip
+
+    res = []
+
+    if(ip == '0.0.0.0'):
+        res.append(i % total_ip)
+
+    elif(ip == 'WiFi Error'):
+        res.append(-1)
+
+    else:
+        res.append(total_ip - 1)
+
+    if(bound is not None and bound):
+        res.append(i % total_server)
+
+    else:
+        res.append(-1)
+
+    if(DEBUG):
+        print(f"wifi_image_number = { res[0] }, server_image_number = { res[1] }")
+
+    return res[0], res[1]
+
+
+def determine_uptime():
+    # global uptime_initial
+
+    if(uptime_initial is not None):
+        uptime_diff = time.time() - uptime_initial
+
+        (minutes, seconds) = divmod(uptime_diff, 60)
+        (hours, minutes) = divmod(minutes, 60)
+        (days, hours) = divmod(hours, 24)
+
+        uptime = f"Up: { days } d { '{:0>2}'.format(hours) }:{ '{:0>2}'.format(minutes) }:{ '{:0>2}'.format(seconds) }"
+
+    else:
+        uptime = None
+
+    return uptime
+
+
+def get_temperature_humidity():
+    # global measures
+
+    num_measures = len(measures)
+
+
+    def inner_function(i):
+        # global measures
+
+        nonlocal num_measures
+
+        measures_index = (i // pow(num_measures, 2)) % num_measures
+
+        if measures[measures_index]['temperature'] is not None:
+            temperature = f"T{ measures_index + 1 }: { '{:0>2}'.format(measures[measures_index]['temperature']) }C"
+
+        else:
+            temperature = f"T{ measures_index + 1 }: ??C"
+
+        if measures[measures_index]['humidity'] is not None:
+            humidity = f"H{ measures_index + 1 }: {'{:0>2}'.format(measures[measures_index]['humidity']) }%"
+
+        else:
+            humidity = f"H{ measures_index + 1 }: ??%"
+
+        return temperature, humidity
+
+    return inner_function
+
+
 def paint_screen(oled, wifi_image, server_image, temperature, humidity, ip, now, uptime):
     OFFSET_H = 1
     OFFSET_V = 0
@@ -118,7 +193,7 @@ def paint_screen(oled, wifi_image, server_image, temperature, humidity, ip, now,
 
     oled.blit(wifi_image, 0, 0 + OFFSET_V)
 
-    if (bound is not None):
+    if(bound is not None):
         oled.blit(server_image, 34 + OFFSET_H, 0 + OFFSET_V)
 
     oled.text(temperature, 68 + OFFSET_H * 2 + 2, 0 + OFFSET_V + 6, oled.white)
@@ -131,8 +206,11 @@ def paint_screen(oled, wifi_image, server_image, temperature, humidity, ip, now,
 
     oled.text(now, int((128 - len(now) * 8) / 2), 46 + OFFSET_V, oled.white)
 
-    if (uptime_initial is not None):
+    if(uptime is not None):
         oled.text(uptime, int((128 - len(uptime) * 8) / 2), 56 + OFFSET_V, oled.white)
+
+    else:
+        oled.text('Up: calc...', int((128 - 11 * 8) / 2), 56 + OFFSET_V, oled.white)
 
     oled.show()
 
@@ -156,13 +234,11 @@ def screen_buttons_manager():
     image_error = OLED_1inch3.load_pbm('./resources/error.pbm', 32, 30)
     now = None
     now_text = ''
-    num_measures = len(measures)
     oled = OLED_1inch3()
     screen_on = True
     server_images = []
     server_image_number = 0
     temperature = None
-    ticks = 60 * 5
     uptime = ''
     wifi_images = []
     wifi_image_number = 0
@@ -175,7 +251,7 @@ def screen_buttons_manager():
 
 
     while(not do_exit[1]):
-        for i in range(ticks):
+        for i in range(60 * 5):
             if(DEBUG):
                 print(f"i = { i }")
 
@@ -201,59 +277,19 @@ Status:
                 break
 
             if(screen_on):
-                if(ip == '0.0.0.0'):
-                    wifi_image_number = i % NUM_WIFI_IMAGES
-
-                elif(ip == 'WiFi Error'):
-                    wifi_image_number = -1
-
-                else:
-                    wifi_image_number = NUM_WIFI_IMAGES - 1
-
-                if(bound is not None):
-                    if(bound):
-                        server_image_number = i % NUM_SERVER_IMAGES
-
-                    else:
-                        server_image_number = -1
-
-                measures_index = i // (ticks // num_measures)
-
-                if(measures[measures_index]['temperature'] is not None):
-                    temperature = f"T: { measures[measures_index]['temperature'] } C"
-
-                else:
-                    temperature = "T: ?? C"
-
-                if(measures[measures_index]['humidity'] is not None):
-                    humidity = f"H: { measures[measures_index]['humidity'] } %"
-
-                else:
-                    humidity = "H: ?? %"
-
-                if(i % 100 == 0):
-                    now = time.localtime(time.time() + 60 * 60)                 # TODO: DST handling
-
-                if(i % 6 == 0 or (i - 1) % 6 == 0 or (i - 2) % 6 == 0):
-                    now_text = f"{ '{:0>2}'.format(now[3]) }:{ '{:0>2}'.format(now[4]) } { '{:0>2}'.format(now[2]) }/{ '{:0>2}'.format(now[1]) }/{ now[0] }"
-
-                else:
-                    now_text = f"{ '{:0>2}'.format(now[3]) } { '{:0>2}'.format(now[4]) } { '{:0>2}'.format(now[2]) }/{ '{:0>2}'.format(now[1]) }/{ now[0] }"
-
-                if(uptime_initial is not None):
-                    if(i % 2 == 0):
-                        uptime_diff = time.time() - uptime_initial
-
-                        (minutes, seconds) = divmod(uptime_diff, 60)
-                        (hours, minutes) = divmod(minutes, 60)
-                        (days, hours) = divmod(hours, 24)
-
-                        uptime = f"Up: { days } d { '{:0>2}'.format(hours) }:{ '{:0>2}'.format(minutes) }:{ '{:0>2}'.format(seconds) }"
+                wifi_image_number, server_image_number = determine_image_number(i, NUM_WIFI_IMAGES, NUM_SERVER_IMAGES)
+                wifi_image = wifi_images[wifi_image_number] if(wifi_image_number >= 0) else image_error
+                server_image = server_images[server_image_number] if(server_image_number >= 0) else image_error
+                get_temp_hum = get_temperature_humidity()
+                temperature, humidity = get_temp_hum(i)
+                now = time.localtime(time.time() + 60 * 60) if(i % 100 == 0) else now    # TODO: DST handling
+                now_text = f"{ '{:0>2}'.format(now[3]) }:{ '{:0>2}'.format(now[4]) } { '{:0>2}'.format(now[2]) }/{ '{:0>2}'.format(now[1]) }/{ now[0] }" if i % 6 in (0, 1, 2) else f"{ '{:0>2}'.format(now[3]) } { '{:0>2}'.format(now[4]) } { '{:0>2}'.format(now[2]) }/{ '{:0>2}'.format(now[1]) }/{ now[0] }"
+                uptime = determine_uptime() if(i % 2 == 0) else uptime
 
                 paint_screen(
                     oled,
-                    wifi_images[wifi_image_number] if(wifi_image_number >= 0) else image_error,
-                    server_images[server_image_number] if(server_image_number >= 0) else image_error,
+                    wifi_image,
+                    server_image,
                     temperature,
                     humidity,
                     ip,
@@ -327,6 +363,9 @@ def main(argv = sys.argv[1:]): # @UnusedVariable
             pass
 
         else:
+            pass
+
+        finally:
             uptime_initial = time.time()
 
         bound = s.bind(ip = connection.ip())
