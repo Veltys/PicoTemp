@@ -23,7 +23,7 @@ import time                                                                     
 
 from OLED_1inch3 import OLED_1inch3                                             # OLED screen hardware management
 from dht11 import dht11                                                         # DHT11 sensor management
-from leds import leds                                                           # LEDs management
+# from leds import leds                                                         # LEDs management
 from machine import Pin                                                         # GPIO pins management
 from server import server                                                       # HTTP server
 from wifi import wifi                                                           # WiFi hardware management
@@ -233,7 +233,7 @@ def screen_buttons_manager():
     ]
     humidity = None
     image_error = OLED_1inch3.load_pbm('./resources/error.pbm', 32, 30)
-    led = leds(config.leds_pins)
+#   led = leds(config.leds_pins)
     now = None
     now_text = ''
     oled = OLED_1inch3()
@@ -261,7 +261,7 @@ def screen_buttons_manager():
                 if(DEBUG):
                     print('Exit event detected 👋🏼')
 
-                led.off(0)
+#               led.off(0)
 
                 global_exit()
 
@@ -281,7 +281,7 @@ Status:
                 break
 
             if(screen_on):
-                led.off(0)
+#               led.off(0)
 
                 wifi_image_number, server_image_number = determine_image_number(i, NUM_WIFI_IMAGES, NUM_SERVER_IMAGES)
                 wifi_image = wifi_images[wifi_image_number] if(wifi_image_number >= 0) else image_error
@@ -304,8 +304,10 @@ Status:
                 )
 
             else:
-                if(i % 10 == 0):
-                    led.toggle(0)
+#               if(i % 10 == 0):
+#                   led.toggle(0)
+
+                pass
 
             time.sleep(0.1)
 

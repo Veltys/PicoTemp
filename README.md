@@ -24,6 +24,10 @@ PicoTemp measures the temperature thanks to a DHT11 sensor and returns it in the
 ### Cancelled
 - [ ] ~~Asynchronous web server~~
 
+### [2.3.1] - 2023-12-05
+#### Fixed
+- 'LED' pin is bugged
+
 ### [2.3.0] - 2023-12-05
 #### Added
 - 'I am alive' LED support

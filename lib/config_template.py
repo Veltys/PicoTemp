@@ -18,7 +18,7 @@
 
 class config(object):
     buttons_pins = [15, 17]
-    leds_pins = ['LED']
+#   leds_pins = ['LED']
     dht11_pins = [2, 13]
     wifi_ssid = 'YOUR_WIFI_SSID'
     wifi_password = 'YOUR_WIFI_PASSWORD'
