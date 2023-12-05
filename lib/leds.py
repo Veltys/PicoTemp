@@ -5,34 +5,22 @@
 '''!
     leds
 
-    @file		: leds.py
-    @brief		: LEDs manager module
+    @file       : leds.py
+    @brief      : LEDs manager module
 
-    @author		: Veltys
-    @date		: 2023-10-29
-    @version	: 1.0.0
-    @usage		: (imported when needed)
-    @note		: ...
+    @author     : Veltys
+    @date       : 2023-12-05
+    @version    : 1.1.0
+    @usage      : (imported when needed)
+    @note       : ...
 '''
 
 
-from time import sleep
-import errno                                                                    # Error codes
-import sys                                                                      # System-specific parameters and functions
-
-from machine import Pin															# GPIO pins management
-import utime																	# Microtime-related functions
-
-try:
-    from config import config                                                   # Configuration
-
-except ImportError:
-    print('Error: Config file not found', file = sys.stderr)
-    sys.exit(errno.ENOENT)
+from machine import Pin                                                         # GPIO pins management
 
 
 class leds:
-    _leds		= None
+    _leds = None
 
 
     def __init__(self, leds = None):
@@ -44,106 +32,71 @@ class leds:
             @param leds					: List of three GPIO LEDs pins
         '''
 
-        if(leds != None):
+        if(leds is not None):
             self.leds(leds)
-
-
-    def blink(self, led, time, threaded = False):
-        '''!
-            LED blinker
-
-            @param led					: LED to blink
-            @param time					: Duration of the blinking
-            @param threaded				: Enables thread management
-        '''
-
-        internal_led	= int(led)
-        internal_time	= int(time)
-
-        if(self._leds != None and internal_led < 3 and internal_time > 0):
-            if(threaded):
-                f_exit_thread = open(config.exit_thread_file, 'r')
-
-                exit_thread = f_exit_thread.read()
-
-                f_exit_thread.close()
-
-            else:
-                exit_thread = 'False'
-
-            initial_time = utime.ticks_ms()
-            current_time = utime.ticks_ms()
-
-            while(utime.ticks_diff(current_time, initial_time) < internal_time and exit_thread == 'False'):
-                self._leds[internal_led].toggle()
-
-                sleep(0.5)
-
-                current_time = utime.ticks_ms()
-
-                if(threaded):
-                    f_exit_thread = open(config.exit_thread_file, 'r')
-
-                    exit_thread = f_exit_thread.read()
-
-                    f_exit_thread.close()
-
-            self._leds[internal_led].value(0)
 
 
     def leds(self, leds):
         '''!
             _leds variable modifier
 
-            @param leds					: List of three GPIO LEDs pins
+            @param leds					: List of GPIO LEDs pins
 
             @return						: Succesfully initialized
         '''
 
-        if(len(leds) == 3):
+        if(leds is not None):
             self._leds = []
 
             for led in leds:
-                self._leds.append(Pin(int(led), Pin.OUT))
+                self._leds.append(Pin(led, Pin.OUT))
+
+            return True
 
         else:
             return False
 
 
-    def toggle(self, led):
+    def toggle(self, led = None):
         '''!
             LED toggler
 
             @param led					: LED from the list to toggle
         '''
 
-        internal_led	= int(led)
+        if(self._leds is not None):
+            self._leds[int(led)].toggle()
 
-        if(self._leds != None and internal_led < 3):
-            self._leds[internal_led].toggle()
+        else:
+            for i, _ in enumerate(self._leds):
+                self.toggle(i)
 
 
-    def off(self, led):
+    def off(self, led = None):
         '''!
             LED off switcher
 
             @param led					: LED from the list to switch off
         '''
 
-        internal_led	= int(led)
+        if(self._leds is not None):
+            self._leds[int(led)].value(0)
 
-        if(self._leds != None and internal_led < 3):
-            self._leds[internal_led].value(0)
+        else:
+            for i, _ in enumerate(self._leds):
+                self.off(i)
 
 
-    def on(self, led):
+    def on(self, led = None):
         '''!
             LED on switcher
 
             @param led					: LED from the list to switch on
         '''
 
-        internal_led	= int(led)
+        if(self._leds is not None):
+            self._leds[int(led)].value(1)
 
-        if(self._leds != None and internal_led < 3):
-            self._leds[internal_led].value(1)
+        else:
+            for i, _ in enumerate(self._leds):
+                self.on(i)
