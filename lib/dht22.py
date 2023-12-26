@@ -5,8 +5,8 @@
 '''!
     dht11
 
-    @file		: dht11.py
-    @brief		: DHT11 sensor manager module
+    @file		: dht22.py
+    @brief		: DHT22 sensor manager module
 
     @author		: Veltys
     @date		: 2023-12-18
@@ -16,12 +16,12 @@
 '''
 
 
-from dht import DHT11
+from dht import DHT22
 from dht_sensor import dht_sensor
 from machine import Pin
 
 
-class dht11(dht_sensor):
+class dht22(dht_sensor):
     _humidity = None
     _sensor = None
     _temperature = None
@@ -34,4 +34,4 @@ class dht11(dht_sensor):
             @param pin					: GPIO sensor pin
         '''
 
-        self._sensor = DHT11(Pin(int(pin)))
+        self._sensor = DHT22(Pin(int(pin)))

@@ -9,30 +9,31 @@
     @brief      : Main module
 
     @author     : Veltys
-    @date       : 2023-12-05
-    @version    : 2.4.0
+    @date       : 2023-12-27
+    @version    : 2.5.0
     @usage      : python3 main.py | ./main.py
     @note       : ...
 '''
 
 
-import _thread                                                                  # Low-level threads management
-import errno                                                                    # Error codes
-import sys                                                                      # System-specific parameters and functions
-import time                                                                     # Time manipulation
+import _thread                                                                              # Low-level threads management
+import errno                                                                                # Error codes
+import sys                                                                                  # System-specific parameters and functions
+import time                                                                                 # Time manipulation
 
-from OLED_1inch3 import OLED_1inch3                                             # OLED screen hardware management
-from dht11 import dht11                                                         # DHT11 sensor management
-# from leds import leds                                                         # LEDs management
-from machine import Pin                                                         # GPIO pins management
-from server import server                                                       # HTTP server
-from wifi import wifi                                                           # WiFi hardware management
-import network                                                                  # Network management
-import ntptime                                                                  # NTP time management
+from OLED_1inch3 import OLED_1inch3                                                         # OLED screen hardware management
+from dht11 import dht11                                                                     # DHT11 sensor management
+from dht22 import dht22                                                                     # DHT22 sensor management
+# from leds import leds                                                                     # LEDs management
+from machine import Pin                                                                     # GPIO pins management
+from server import server                                                                   # HTTP server
+from wifi import wifi                                                                       # WiFi hardware management
+import network                                                                              # Network management
+import ntptime                                                                              # NTP time management
 
 
 try:
-    from config import config                                                   # Configuration
+    from config import config                                                               # Configuration
 
 except ImportError:
     print('Error: Config file not found', file = sys.stderr)
@@ -40,6 +41,10 @@ except ImportError:
 
 
 DEBUG = False
+HOUR_OFFSET = 0
+# HOUR_OFFSET = 60 * 60
+PBM_HEIGHT = 16
+PBM_WIDTH = 16
 WIFI_STAT = {
     network.STAT_IDLE: 'IDLE',
     network.STAT_CONNECTING: 'CONNECTING',
@@ -56,7 +61,7 @@ ip = '0.0.0.0'
 measures = []
 uptime_initial = None
 
-for i, _ in enumerate(config.dht11_pins):
+for i, _ in enumerate(config.dht11_pins + config.dht22_pins):
     measures.append({
         'humidity': None,
         'temperature': None,
@@ -186,32 +191,59 @@ def get_temperature_humidity():
     return inner_function
 
 
-def paint_screen(oled, wifi_image, server_image, temperature, humidity, ip, now, uptime):
-    OFFSET_H = 1
-    OFFSET_V = 0
+def paint_screen(oled, wifi_image, server_image, thermometer_image, temperature, humidity, ip, now, uptime):
+    OFFSET_H = 3
+    OFFSET_V = 2
+    RECT_HEIGHT = 2
+    TEXT_HEIGHT = 8
 
-    oled.fill(0) # Clean screen
+    position_h = 0
+    position_v = 0
 
-    oled.blit(wifi_image, 0, 0 + OFFSET_V)
+    oled.fill(0)                                                                            # Clean screen
+
+    oled.blit(thermometer_image, position_h * (PBM_WIDTH + OFFSET_H), position_v * (PBM_HEIGHT + OFFSET_V))
+
+    position_h += 1
+
+    oled.blit(wifi_image, position_h * (PBM_WIDTH + OFFSET_H), position_v * (PBM_HEIGHT + OFFSET_V))
+
+    position_h += 1
 
     if(bound is not None):
-        oled.blit(server_image, 34 + OFFSET_H, 0 + OFFSET_V)
+        oled.blit(server_image, position_h * (PBM_WIDTH + OFFSET_H), position_v * (PBM_HEIGHT + OFFSET_V))
 
-    oled.text(temperature, 68 + OFFSET_H * 2 + 2, 0 + OFFSET_V + 6, oled.white)
+    position_h += 1
 
-    oled.text(humidity, 68 + OFFSET_H * 2 + 2, 10 + OFFSET_V + 6, oled.white)
+    oled.text(temperature, position_h * (PBM_WIDTH + OFFSET_H), position_v * (PBM_HEIGHT + OFFSET_V), oled.white)
 
-    oled.rect(0, 32 + OFFSET_V, 128, 2, oled.white, True)
+    position_v += 1
 
-    oled.text(ip, int((128 - len(ip) * 8) / 2), 36 + OFFSET_V, oled.white)
+    oled.text(humidity, position_h * (PBM_WIDTH + OFFSET_H), position_v * (TEXT_HEIGHT + OFFSET_V), oled.white)
 
-    oled.text(now, int((128 - len(now) * 8) / 2), 46 + OFFSET_V, oled.white)
+    position_v += 1
+
+    oled.rect(0, position_v * (TEXT_HEIGHT + OFFSET_V), 128, RECT_HEIGHT, oled.white, True)
+
+    position_v = 2
+
+    oled.text(ip, int((128 - len(ip) * 8) / 2), position_v * (TEXT_HEIGHT + OFFSET_V) + RECT_HEIGHT + OFFSET_V, oled.white)
+
+    position_v += 1
+
+    oled.text(now, int((128 - len(now) * 8) / 2), position_v * (TEXT_HEIGHT + OFFSET_V) + RECT_HEIGHT + OFFSET_V, oled.white)
+
+    position_v += 1
 
     if(uptime is not None):
-        oled.text(uptime, int((128 - len(uptime) * 8) / 2), 56 + OFFSET_V, oled.white)
+        oled.text(uptime, int((128 - len(uptime) * 8) / 2), position_v * (TEXT_HEIGHT + OFFSET_V) + RECT_HEIGHT + OFFSET_V, oled.white)
 
     else:
-        oled.text('Up: calc...', int((128 - 11 * 8) / 2), 56 + OFFSET_V, oled.white)
+        oled.text('Up: calc...', int((128 - 11 * 8) / 2), position_v * (TEXT_HEIGHT + OFFSET_V) + RECT_HEIGHT + OFFSET_V, oled.white)
+
+    position_v += 1
+
+    oled.text('PicoTemp 2.5.0 M', int((128 - 16 * 8) / 2), position_v * (TEXT_HEIGHT + OFFSET_V) + RECT_HEIGHT + OFFSET_V, oled.white)
 
     oled.show()
 
@@ -232,7 +264,8 @@ def screen_buttons_manager():
         Pin(config.buttons_pins[1], Pin.IN, Pin.PULL_UP),
     ]
     humidity = None
-    image_error = OLED_1inch3.load_pbm('./resources/error.pbm', 32, 30)
+    image_error = OLED_1inch3.load_pbm('./resources/error.pbm', PBM_WIDTH, PBM_HEIGHT)
+    image_thermometer = OLED_1inch3.load_pbm('./resources/thermometer.pbm', PBM_WIDTH, PBM_HEIGHT)
 #   led = leds(config.leds_pins)
     now = None
     now_text = ''
@@ -246,10 +279,10 @@ def screen_buttons_manager():
     wifi_image_number = 0
 
     for i in range(1, NUM_WIFI_IMAGES + 1):
-        wifi_images.append(OLED_1inch3.load_pbm(f"./resources/wifi{ i }.pbm", 32, 30))
+        wifi_images.append(OLED_1inch3.load_pbm(f"./resources/wifi{ i }.pbm", PBM_WIDTH, PBM_HEIGHT))
 
     for i in range(1, NUM_SERVER_IMAGES + 1):
-        server_images.append(OLED_1inch3.load_pbm(f"./resources/server{ i }.pbm", 32, 30))
+        server_images.append(OLED_1inch3.load_pbm(f"./resources/server{ i }.pbm", PBM_WIDTH, PBM_HEIGHT))
 
 
     while(not do_exit[1]):
@@ -286,9 +319,10 @@ Status:
                 wifi_image_number, server_image_number = determine_image_number(i, NUM_WIFI_IMAGES, NUM_SERVER_IMAGES)
                 wifi_image = wifi_images[wifi_image_number] if(wifi_image_number >= 0) else image_error
                 server_image = server_images[server_image_number] if(server_image_number >= 0) else image_error
+                thermometer_image = image_thermometer
                 get_temp_hum = get_temperature_humidity()
                 temperature, humidity = get_temp_hum(i)
-                now = time.localtime(time.time() + 60 * 60) if(i % 100 == 0) else now    # TODO: DST handling
+                now = time.localtime(time.time() + HOUR_OFFSET) if(i % 100 == 0) else now   # TODO: DST handling
                 now_text = f"{ '{:0>2}'.format(now[3]) }:{ '{:0>2}'.format(now[4]) } { '{:0>2}'.format(now[2]) }/{ '{:0>2}'.format(now[1]) }/{ now[0] }" if i % 6 in (0, 1, 2) else f"{ '{:0>2}'.format(now[3]) } { '{:0>2}'.format(now[4]) } { '{:0>2}'.format(now[2]) }/{ '{:0>2}'.format(now[1]) }/{ now[0] }"
                 uptime = determine_uptime() if(i % 2 == 0) else uptime
 
@@ -296,6 +330,7 @@ Status:
                     oled,
                     wifi_image,
                     server_image,
+                    thermometer_image,
                     temperature,
                     humidity,
                     ip,
@@ -342,6 +377,7 @@ def main(argv = sys.argv[1:]): # @UnusedVariable
     connection = wifi(ssid = config.wifi_ssid, password = config.wifi_password)
     s = server()
     sensors = [dht11(pin) for pin in config.dht11_pins]
+    sensors += [dht22(pin) for pin in config.dht22_pins]
 
     for i, sensor in enumerate(sensors):
         sensor.measure()

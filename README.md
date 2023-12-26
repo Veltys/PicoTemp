@@ -24,6 +24,12 @@ PicoTemp measures the temperature thanks to a DHT11 sensor and returns it in the
 ### Cancelled
 - [ ] ~~Asynchronous web server~~
 
+### [2.4.0] - 2023-12-27
+#### Added
+- DHT22 sensor support
+  New smaller icons 
+  New layout
+
 ### [2.3.1] - 2023-12-05
 #### Fixed
 - 'LED' pin is bugged
@@ -93,6 +99,7 @@ PicoTemp measures the temperature thanks to a DHT11 sensor and returns it in the
 ## Acknowledgments, sources consulted and other credits
 * To the [official MicroPython documentation](https://docs.micropython.org/en/latest/), for obvious reasons
 * To the [Waveshare Wiki](https://www.waveshare.com/wiki/Pico-OLED-1.3), for the documentation available
-* [WiFi icon](https://openclipart.org/detail/245083/wireless-signal-icon)
 * [Error icon](https://www.iconexperience.com/g_collection/icons/?icon=sign_warning)
 * [Server icon](https://www.iconexperience.com/g_collection/icons/?icon=server)
+* [Thermometer icon](https://www.iconexperience.com/g_collection/icons/?icon=thermometer)
+* [WiFi icon](https://www.iconexperience.com/g_collection/icons/?icon=wifi)
