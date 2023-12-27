@@ -10,7 +10,7 @@
 
     @author     : Veltys
     @date       : 2023-12-27
-    @version    : 2.5.0
+    @version    : 2.5.1
     @usage      : python3 main.py | ./main.py
     @note       : ...
 '''
@@ -166,12 +166,16 @@ def get_temperature_humidity():
     num_measures = len(measures)
 
 
-    def inner_function(i):
+    def inner_function(i, total_ticks):
         # global measures
 
         nonlocal num_measures
 
-        measures_index = (i // pow(num_measures, 2)) % num_measures
+        max_portion = 10
+        max_ticks_per_sensor = total_ticks // max_portion                               # Calculate the maximum number of ticks per sensor, not to exceed a quarter of total_ticks
+        switch_rate = min(total_ticks // num_measures, max_ticks_per_sensor)            # Calculate how often to switch sensors, based on the total number of sensors and the max ticks per sensor
+        measures_index = (i // switch_rate) % num_measures                              # Calculate the sensor index based on the current tick
+
 
         if measures[measures_index]['temperature'] is not None:
             temperature = f"T{ measures_index + 1 }: { '{:0>2}'.format(measures[measures_index]['temperature']) }C"
@@ -273,6 +277,7 @@ def screen_buttons_manager():
     server_images = []
     server_image_number = 0
     temperature = None
+    total_ticks = 60 * 5
     uptime = ''
     wifi_images = []
     wifi_image_number = 0
@@ -285,7 +290,7 @@ def screen_buttons_manager():
 
 
     while(not do_exit[1]):
-        for i in range(60 * 5):
+        for i in range(total_ticks):
             if(DEBUG):
                 print(f"i = { i }")
 
@@ -320,7 +325,7 @@ Status:
                 server_image = server_images[server_image_number] if(server_image_number >= 0) else image_error
                 thermometer_image = image_thermometer
                 get_temp_hum = get_temperature_humidity()
-                temperature, humidity = get_temp_hum(i)
+                temperature, humidity = get_temp_hum(i, total_ticks)
                 now = time.localtime(time.time() + HOUR_OFFSET) if(i % 100 == 0) else now   # TODO: DST handling
                 now_text = f"{ '{:0>2}'.format(now[3]) }:{ '{:0>2}'.format(now[4]) } { '{:0>2}'.format(now[2]) }/{ '{:0>2}'.format(now[1]) }/{ now[0] }" if i % 6 in (0, 1, 2) else f"{ '{:0>2}'.format(now[3]) } { '{:0>2}'.format(now[4]) } { '{:0>2}'.format(now[2]) }/{ '{:0>2}'.format(now[1]) }/{ now[0] }"
                 uptime = determine_uptime() if(i % 2 == 0) else uptime

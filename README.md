@@ -24,6 +24,10 @@ PicoTemp measures the temperature thanks to a DHT11 sensor and returns it in the
 ### Cancelled
 - [ ] ~~Asynchronous web server~~
 
+### [2.4.1] - 2023-12-27
+#### Fixed
+- Better DHT11 / DHT22 sensors alternance algorithm
+
 ### [2.4.0] - 2023-12-27
 #### Added
 - DHT22 sensor support
