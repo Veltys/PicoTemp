@@ -42,7 +42,6 @@ except ImportError:
 
 DEBUG = False
 HOUR_OFFSET = 0
-# HOUR_OFFSET = 60 * 60
 PBM_HEIGHT = 16
 PBM_WIDTH = 16
 WIFI_STAT = {
@@ -243,7 +242,7 @@ def paint_screen(oled, wifi_image, server_image, thermometer_image, temperature,
 
     position_v += 1
 
-    oled.text('PicoTemp 2.5.0 M', int((128 - 16 * 8) / 2), position_v * (TEXT_HEIGHT + OFFSET_V) + RECT_HEIGHT + OFFSET_V, oled.white)
+    oled.text('PicoTemp 2.5.0 T', int((128 - 16 * 8) / 2), position_v * (TEXT_HEIGHT + OFFSET_V) + RECT_HEIGHT + OFFSET_V, oled.white)
 
     oled.show()
 
