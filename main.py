@@ -9,8 +9,8 @@
     @brief      : Main module
 
     @author     : Veltys
-    @date       : 2023-12-27
-    @version    : 2.5.1
+    @date       : 2024-05-16
+    @version    : 2.6.0
     @usage      : python3 main.py | ./main.py
     @note       : ...
 '''
@@ -246,7 +246,7 @@ def paint_screen(oled, wifi_image, server_image, thermometer_image, temperature,
 
     position_v += 1
 
-    oled.text('PicoTemp 2.5.0 M', int((128 - 16 * 8) / 2), position_v * (TEXT_HEIGHT + OFFSET_V) + RECT_HEIGHT + OFFSET_V, oled.white)
+    oled.text('PicoTemp 2.6.0 E', int((128 - 16 * 8) / 2), position_v * (TEXT_HEIGHT + OFFSET_V) + RECT_HEIGHT + OFFSET_V, oled.white)
 
     oled.show()
 
@@ -326,7 +326,7 @@ Status:
                 thermometer_image = image_thermometer
                 get_temp_hum = get_temperature_humidity()
                 temperature, humidity = get_temp_hum(i, total_ticks)
-                now = time.localtime(time.time() + HOUR_OFFSET) if(i % 100 == 0) else now   # TODO: DST handling
+                now = time.localtime(time.time() + HOUR_OFFSET + (HOUR_OFFSET if config.dst else 0)) if(i % 100 == 0) else now   # TODO: DST handling still needed
                 now_text = f"{ '{:0>2}'.format(now[3]) }:{ '{:0>2}'.format(now[4]) } { '{:0>2}'.format(now[2]) }/{ '{:0>2}'.format(now[1]) }/{ now[0] }" if i % 6 in (0, 1, 2) else f"{ '{:0>2}'.format(now[3]) } { '{:0>2}'.format(now[4]) } { '{:0>2}'.format(now[2]) }/{ '{:0>2}'.format(now[1]) }/{ now[0] }"
                 uptime = determine_uptime() if(i % 2 == 0) else uptime
 
