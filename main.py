@@ -327,7 +327,7 @@ Status:
                 thermometer_image = image_thermometer
                 get_temp_hum = get_temperature_humidity()
                 temperature, humidity = get_temp_hum(i, total_ticks)
-                now = time.localtime(time.time() + HOUR_OFFSET + (HOUR_OFFSET if config.dst else 0)) if(i % 100 == 0) else now   # TODO: DST handling still needed
+                now = time.localtime(time.time() + 2 * HOUR_OFFSET + (HOUR_OFFSET if config.dst else 0)) if(i % 100 == 0) else now   # TODO: DST handling still needed
                 now_text = f"{ '{:0>2}'.format(now[3]) }:{ '{:0>2}'.format(now[4]) } { '{:0>2}'.format(now[2]) }/{ '{:0>2}'.format(now[1]) }/{ now[0] }" if i % 6 in (0, 1, 2) else f"{ '{:0>2}'.format(now[3]) } { '{:0>2}'.format(now[4]) } { '{:0>2}'.format(now[2]) }/{ '{:0>2}'.format(now[1]) }/{ now[0] }"
                 uptime = determine_uptime() if(i % 2 == 0) else uptime
 
