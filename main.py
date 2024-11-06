@@ -9,8 +9,8 @@
     @brief      : Main module
 
     @author     : Veltys
-    @date       : 2024-05-16
-    @version    : 2.6.0
+    @date       : 2024-11-07
+    @version    : 2.6.1
     @usage      : python3 main.py | ./main.py
     @note       : ...
 '''
@@ -44,6 +44,7 @@ DEBUG = False
 HOUR_OFFSET = 0
 PBM_HEIGHT = 16
 PBM_WIDTH = 16
+VERSION = '2.6.1'
 WIFI_STAT = {
     network.STAT_IDLE: 'IDLE',
     network.STAT_CONNECTING: 'CONNECTING',
@@ -246,7 +247,7 @@ def paint_screen(oled, wifi_image, server_image, thermometer_image, temperature,
 
     position_v += 1
 
-    oled.text('PicoTemp 2.6.0 M', int((128 - 16 * 8) / 2), position_v * (TEXT_HEIGHT + OFFSET_V) + RECT_HEIGHT + OFFSET_V, oled.white)
+    oled.text(f"PicoTemp { VERSION } M", int((128 - 16 * 8) / 2), position_v * (TEXT_HEIGHT + OFFSET_V) + RECT_HEIGHT + OFFSET_V, oled.white)
 
     oled.show()
 
