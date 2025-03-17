@@ -9,8 +9,8 @@
     @brief		: WiFi connector module
 
     @author		: Veltys
-    @date		: 2025-03-17
-    @version	: 1.2.0
+    @date		: 2025-03-18
+    @version	: 1.3.0
     @usage		: (imported when needed)
     @note		: ...
 '''
@@ -112,3 +112,38 @@ class wifi:
         else:
             return ''
 
+
+    def isconnected(self):
+        '''!
+            Connection checker
+
+            Checks if the device is connected to the WiFi network
+
+            @return                     : True if connected, False otherwise
+        '''
+
+        return self._wlan.isconnected()
+
+
+    def get_rssi(self):
+        '''!
+            RSSI observer
+
+            Gets the Received Signal Strength Indicator (RSSI) of the connected WiFi network
+
+            @return                     : The RSSI value in dBm if connected, None otherwise
+        '''
+
+        res = None
+
+        if self.isconnected():
+            try:
+                res = self._wlan.status('rssi')
+
+            except (AttributeError, OSError):
+                res = None
+
+        else:
+            res = None
+
+        return res
