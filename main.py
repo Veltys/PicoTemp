@@ -9,8 +9,8 @@
     @brief      : Main module
 
     @author     : Veltys
-    @date       : 2024-11-07
-    @version    : 2.6.1
+    @date       : 2025-03-17
+    @version    : 2.7.0
     @usage      : python3 main.py | ./main.py
     @note       : ...
 '''
@@ -21,7 +21,6 @@ import errno                                                                    
 import sys                                                                                  # System-specific parameters and functions
 import time                                                                                 # Time manipulation
 
-from OLED_1inch3 import OLED_1inch3                                                         # OLED screen hardware management
 from dht11 import dht11                                                                     # DHT11 sensor management
 from dht22 import dht22                                                                     # DHT22 sensor management
 # from leds import leds                                                                     # LEDs management
@@ -40,11 +39,15 @@ except ImportError:
     sys.exit(errno.ENOENT)
 
 
-DEBUG = False
+if(config.screen):
+    from OLED_1inch3 import OLED_1inch3                                                     # OLED screen hardware management
+
+
+DEBUG = True
 HOUR_OFFSET = 0
 PBM_HEIGHT = 16
 PBM_WIDTH = 16
-VERSION = '2.6.1'
+VERSION = '2.7.0'
 WIFI_STAT = {
     network.STAT_IDLE: 'IDLE',
     network.STAT_CONNECTING: 'CONNECTING',
@@ -390,8 +393,8 @@ def main(argv = sys.argv[1:]): # @UnusedVariable
         measures[i]['humidity'] = sensor.humidity()
         measures[i]['temperature'] = sensor.temperature()
 
-    # Thread to make screen_buttons_manager
-    _thread.start_new_thread(screen_buttons_manager, ())
+    if(config.screen):
+        _thread.start_new_thread(screen_buttons_manager, ())                    # Thread to make screen_buttons_manager
 
     time.sleep(1)
 
@@ -407,7 +410,7 @@ def main(argv = sys.argv[1:]): # @UnusedVariable
             print('WiFi connected 😁')
             print(ip)
 
-        ntptime.host = "hora.roa.es"
+        ntptime.host = 'hora.roa.es'
 
         try:
             ntptime.settime()
