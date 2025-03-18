@@ -24,6 +24,10 @@ PicoTemp measures the temperature thanks to a DHT11 sensor and returns it in the
 ### Cancelled
 - [ ] ~~Asynchronous web server~~
 
+### [2.5.1] - 2025-03-18
+#### Fixed
+- Connection hang
+
 ### [2.5.0] - 2025-03-18
 #### Added
 - Dynamic WiFi signal strength
