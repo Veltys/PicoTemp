@@ -10,7 +10,7 @@
 
     @author		: Veltys
     @date		: 2025-03-18
-    @version	: 1.3.0
+    @version	: 1.4.0
     @usage		: (imported when needed)
     @note		: ...
 '''
@@ -147,3 +147,35 @@ class wifi:
             res = None
 
         return res
+
+
+    @staticmethod
+    def signal_bars(rssi, total_bars):
+        '''!
+            Converts WiFi signal strength (RSSI) to a number of signal bars
+
+            This method maps the RSSI value (in dBm) to a signal strength representation
+            using a given number of bars
+
+            - RSSI values typically range from `-30 dBm` (excellent signal) to `-90 dBm` (very weak signal)
+            - If `rssi` falls outside this range, the function returns `total_bars` as an error indicator
+            - Otherwise, the method scales the RSSI within `0` to `total_bars - 1`
+
+            @param rssi                 : WiFi signal strength in dBm
+            @param total_bars           : Maximum number of bars to represent the signal strength
+
+            @return                     : An integer (`0` to `total_bars - 1`) representing the number of bars,
+                                          or `-1` in case of an out-of-range value
+        '''
+
+        RSSI_MAX = -30                                                          # Excellent signal
+        RSSI_MIN = -90                                                          # Poor signal
+
+        if(rssi >= RSSI_MIN and rssi <= RSSI_MAX):
+            # Map RSSI to the number of bars (scaling between RSSI_MIN and RSSI_MAX)
+            bars = round((rssi - RSSI_MIN) / (RSSI_MAX - RSSI_MIN) * (total_bars - 1))
+
+        else:
+            bars = -1
+
+        return bars

@@ -10,7 +10,7 @@
 
     @author     : Veltys
     @date       : 2025-03-17
-    @version    : 2.8.0
+    @version    : 2.9.0
     @usage      : python3 main.py | ./main.py
     @note       : ...
 '''
@@ -47,7 +47,7 @@ DEBUG = True
 HOUR_OFFSET = 0
 PBM_HEIGHT = 16
 PBM_WIDTH = 16
-VERSION = '2.8.0'
+VERSION = '2.9.0'
 WIFI_STAT = {
     network.STAT_IDLE: 'IDLE',
     network.STAT_CONNECTING: 'CONNECTING',
@@ -59,6 +59,7 @@ WIFI_STAT = {
 
 
 bound = None
+connection = None
 do_exit = [ False, False ]
 ip = '0.0.0.0'
 measures = []
@@ -175,6 +176,7 @@ def determine_image_number(i, total_ip, total_server):
     '''
 
     # global bound
+    # global connection
     # global ip
 
     res = []
@@ -186,7 +188,18 @@ def determine_image_number(i, total_ip, total_server):
         res.append(-1)
 
     else:
-        res.append(total_ip - 1)
+        wifi_rssi = connection.get_rssi()
+
+        if(DEBUG):
+            print(f"wifi_rssi = { wifi_rssi }")
+
+        wifi_bars = wifi.signal_bars(wifi_rssi, total_ip)
+
+        if(DEBUG):
+            print(f"wifi_bars = { wifi_bars }")
+
+        res.append(wifi_bars)
+        # res.append(total_ip - 1)
 
     if(bound is not None and bound):
         res.append(i % total_server)
@@ -541,6 +554,7 @@ def main(argv = sys.argv[1:]): # @UnusedVariable
     '''
 
     global bound
+    global connection
     global do_exit
     global ip
     global measures
@@ -587,8 +601,6 @@ def main(argv = sys.argv[1:]): # @UnusedVariable
 
                 finally:
                     uptime_initial = time.time()
-
-            # TODO: WiFi signal strenght
 
             if(bound is None):
                 bound = s.bind(ip = connection.ip())

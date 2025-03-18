@@ -26,6 +26,7 @@ PicoTemp measures the temperature thanks to a DHT11 sensor and returns it in the
 
 ### [2.5.0] - 2025-03-18
 #### Added
+- Dynamic WiFi signal strength
 - Screenless mode
 - Some WiFi facilities
 
