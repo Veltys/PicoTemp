@@ -9,8 +9,8 @@
     @brief      : Main module
 
     @author     : Veltys
-    @date       : 2025-03-17
-    @version    : 2.9.0
+    @date       : 2025-03-18
+    @version    : 2.9.1                                                                     # Do not forget to update version number variable 
     @usage      : python3 main.py | ./main.py
     @note       : ...
 '''
@@ -47,7 +47,7 @@ DEBUG = False
 HOUR_OFFSET = 0
 PBM_HEIGHT = 16
 PBM_WIDTH = 16
-VERSION = '2.9.0'
+VERSION = '2.9.1'
 WIFI_STAT = {
     network.STAT_IDLE: 'IDLE',
     network.STAT_CONNECTING: 'CONNECTING',
@@ -498,10 +498,12 @@ Status:
 
                 break
 
+            # It is necessary to do this calculation always or the connection will fail, I do not know the reason
+            wifi_image_number, server_image_number = determine_image_number(i, NUM_WIFI_IMAGES, NUM_SERVER_IMAGES)
+
             if(screen_on):
 #               led.off(0)
 
-                wifi_image_number, server_image_number = determine_image_number(i, NUM_WIFI_IMAGES, NUM_SERVER_IMAGES)
                 wifi_image = wifi_images[wifi_image_number] if(wifi_image_number >= 0) else image_error
                 server_image = server_images[server_image_number] if(server_image_number >= 0) else image_error
                 thermometer_image = image_thermometer

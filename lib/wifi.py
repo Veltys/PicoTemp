@@ -18,7 +18,7 @@
 
 from time import sleep															# Sleep function
 
-import network																	# Network management
+import network                                                                  # Network management
 
 
 class wifi:
