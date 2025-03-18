@@ -9,8 +9,8 @@
     @brief		: WiFi connector module
 
     @author		: Veltys
-    @date		: 2023-11-07
-    @version	: 1.1.0
+    @date		: 2025-03-17
+    @version	: 1.2.0
     @usage		: (imported when needed)
     @note		: ...
 '''
@@ -52,21 +52,37 @@ class wifi:
             @return						: Success of the connection
         '''
 
+        attempt = 0
+
         if(self._ssid != None and self._password != None):
             self._wlan = network.WLAN(network.STA_IF)
             self._wlan.active(True)
-            self._wlan.connect(self._ssid, self._password)
 
-            # Wait for connect or fail
-            max_wait = 30
+            while attempt < 3:
+                max_wait = 30
 
-            while(max_wait > 0):
-                if(self._wlan.status() < network.STAT_IDLE or self._wlan.status() >= network.STAT_GOT_IP):
+                self._wlan.connect(self._ssid, self._password)
+
+                while max_wait > 0:
+                    status = self._wlan.status()
+
+                    if(status < network.STAT_IDLE or status >= network.STAT_GOT_IP):
+                        break
+
+                    else:
+                        max_wait -= 1
+
+                        sleep(1)
+
+                if self._wlan.isconnected():
                     break
 
-                max_wait -= 1
+                else:
+                    attempt += 1
 
-                sleep(1)
+                    self._wlan.disconnect()
+
+                    sleep(1)
 
             return self._wlan.status()
 
