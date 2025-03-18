@@ -9,8 +9,8 @@
     @brief      : Config class
 
     @author     : Veltys
-    @date       : 2023-12-18
-    @version    : 1.4.0
+    @date       : 2024-05-16
+    @version    : 1.5.0
     @usage      : (imported when needed)
     @note       : ...
 '''
@@ -18,6 +18,7 @@
 
 class config(object):
     buttons_pins = [15, 17]
+    dst = True
 #   leds_pins = ['LED']
     dht11_pins = [2, 13]
     dht22_pins = [4]
