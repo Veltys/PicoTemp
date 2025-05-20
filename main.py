@@ -9,8 +9,8 @@
     @brief      : Main module
 
     @author     : Veltys
-    @date       : 2025-03-18
-    @version    : 2.9.1                                                                     # Do not forget to update version number variable 
+    @date       : 2025-05-20
+    @version    : 2.9.2                                                                     # Do not forget to update version number variable 
     @usage      : python3 main.py | ./main.py
     @note       : ...
 '''
@@ -47,7 +47,7 @@ DEBUG = False
 HOUR_OFFSET = 0
 PBM_HEIGHT = 16
 PBM_WIDTH = 16
-VERSION = '2.9.1'
+VERSION = '2.9.2'
 WIFI_STAT = {
     network.STAT_IDLE: 'IDLE',
     network.STAT_CONNECTING: 'CONNECTING',

@@ -9,8 +9,8 @@
     @brief		: WiFi connector module
 
     @author		: Veltys
-    @date		: 2025-03-18
-    @version	: 1.4.0
+    @date		: 2025-05-20
+    @version	: 1.4.1
     @usage		: (imported when needed)
     @note		: ...
 '''
@@ -171,7 +171,7 @@ class wifi:
         RSSI_MAX = -30                                                          # Excellent signal
         RSSI_MIN = -90                                                          # Poor signal
 
-        if(rssi >= RSSI_MIN and rssi <= RSSI_MAX):
+        if(rssi is not None and rssi >= RSSI_MIN and rssi <= RSSI_MAX):
             # Map RSSI to the number of bars (scaling between RSSI_MIN and RSSI_MAX)
             bars = round((rssi - RSSI_MIN) / (RSSI_MAX - RSSI_MIN) * (total_bars - 1))
 
